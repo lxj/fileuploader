@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="gbk"/>
+    <title>fileupload</title>
+    <style>
+        #outlog{overflow:hidden;zoom:1}
+        #outlog img{border:1px solid #ccc;padding:5px;max-width:300px;margin-top:15px}
+        #outlog .pic-item{float:left;margin-right:10px}
+    </style>
+    <script src="../dist/fileuploader.js"></script>
+</head>
+<body>
+<div style="overflow:hidden;zoom:1;line-height:30px">
+    <div id="button" style="float:left;width:100px;height:30px;background:#f00;color:#fff;text-align:center;line-height:30px;border-radius:8px;font-size:14px;text-shadow:1px 1px 1px rgba(0,0,0,0.5);margin-right:15px">上传图片</div>
+    <span id="text"></span>
+</div>
+
+<p id="outlog" style="line-height: 24px;font-size:14px"></p>
+<script>
+    fileuploader(
+            'button',
+            {
+                action :'fileupload.php',
+                fileinputname : 'file',
+                changeBefore: function(btn){
+                    var outlog = document.getElementById('outlog'),text = document.getElementById('text');
+                    text.style.display='block';
+                    text.innerHTML = "上传中....";
+//                    btn.style.display='none';
+                },
+                complete : function(data,btn){
+                    var str=[],div = document.createElement('div');
+                    for(var k in data){
+                        str.push(k+'='+data[k]);
+                    }
+                    div.innerHTML = str.join('<br />')+'<br/><img src="'+data.src+'" alt="" />';
+                    div.className = "pic-item";
+                    outlog.appendChild(div);
+                    text.style.display='none';
+//                    btn.style.display='block';
+                }
+            }
+    );
+
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="gbk"/>
+    <link href="" type="text/css" rel="stylesheet"/>
+    <title>新文档</title>
+</head>
+<body>
+<script>
+   var P={};
+   var _isload = function(o, url) {
+       var isload = false;
+       o.each(function() {
+           if ($(this).attr("src")) {
+               var src = $(this).attr("src");
+               var l = src.indexOf("?");
+               if (l != -1) {
+                   src = src.substring(0, l)
+               }
+               if (src == url) {
+                   isload = true
+               }
+           }
+       });
+       return isload
+   };
+    P.loadScript = function(url, callback) {
+          if (!_isload($("script"), url)) {
+              setTimeout(function() {
+                  var script = document.createElement("script");
+                  script.type = "text/javascript";
+                  script.src = url;
+                  document.getElementsByTagName("head")[0].appendChild(script);
+                  if (script.readyState) {
+                      script.onreadystatechange = function() {
+                          if (script.readyState == "loaded" || script.readyState == "complete") {
+                              script.onreadystatechange = null;
+                              if (typeof callback == "function") {
+                                  callback()
+                              }
+                          }
+                      }
+                  } else {
+                      script.onload = function() {
+                          if (typeof callback == "function") {
+                              callback()
+                          }
+                      }
+                  }
+              }, 0)
+          } else {
+              if (typeof callback == "function") {
+                  callback()
+              }
+          }
+      };
+   it.upload = function() {
+       img_obj = new Image();
+       img_obj.onload = function() {
+           $("#_set_upload_face_loading").hide();
+           $("#_set_upload_face").show();
+           $("#_set_face_but").show();
+           $("#_face_view").attr("src", imgurl).parent().show();
+           $("#_face_view1").attr("src", imgurl);
+           $("#_face_view2").attr("src", imgurl);
+           $("#_face_view3").attr("src", imgurl);
+           P.loadScript("/js/jcrop/jquery.jcrop.min.js", function() {
+               jcrop_obj && jcrop_obj.destroy();
+               jcrop_obj = $.Jcrop("#_face_view", {trueSize: [img_obj.width, img_obj.height],setSelect: options.select,onChange: function(coords) {
+                       if (parseInt(coords.w) > 0) {
+                           it.change($("#_face_view1"), coords, 180);
+                           it.change($("#_face_view2"), coords, 50);
+                           it.change($("#_face_view3"), coords, 16)
+                       }
+                   },aspectRatio: 1})
+           })
+       };
+       img_obj.src = imgurl
+   };
+   it.change = function(o, coords, r) {
+       var rx = r / coords.w;
+       var ry = r / coords.h;
+       o.css({width: Math.round(rx * img_obj.width) + "px",height: Math.round(ry * img_obj.height) + "px",marginLeft: "-" + Math.round(rx * coords.x) + "px",marginTop: "-" + Math.round(ry * coords.y) + "px"})
+   };
+    P.loadScript("/js/fileuploader.js", function() {
+        new AjaxUpload($("#_set_upload_face_button"), {action: "upload.php?type=face&temp=1",name: "upload_file",responseType: "json",fontSize: 14,onSubmit: function(file, ext) {
+                ext = ext.toString().toLowerCase();
+                if (ext == "jpg" || ext == "jpeg" || ext == "gif" || ext == "png") {
+                    $("#_set_upload_face").hide();
+                    $("#_set_upload_face_loading").show();
+                } else {
+                    dialog.alert({title: "提示",content: "只允许上传JPG、GIF、和PNG图片文件!"});
+                    return false
+                }
+            },onComplete: function(file, response) {
+                if (response.retCode == 1090) {
+                    imgurl = response.src.replace("small_", "");
+                    it.upload()
+                } else {
+                    alert("上传失败！")
+                }
+            }})
+    })
+</script>
+</body>
+</html>
